@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart College Attendance System</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+<header>
+  <h1><i class="fas fa-fingerprint"></i> Smart College Attendance System</h1>
+  <div class="header-info">
+    <span id="current-date"></span>
+    <span id="current-time"></span>
+  </div>
+</header>
+
+<nav class="tabs">
+  <button class="tab-btn active" onclick="showTab('dashboard')"><i class="fas fa-home"></i> Dashboard</button>
+  <button class="tab-btn" onclick="showTab('admin')"><i class="fas fa-user-shield"></i> Admin</button>
+  <button class="tab-btn" onclick="showTab('student')"><i class="fas fa-users"></i> Student</button>
+  <button class="tab-btn" onclick="showTab('attendance')"><i class="fas fa-calendar-check"></i> Attendance</button>
+  <button class="tab-btn" onclick="showTab('reports')"><i class="fas fa-chart-bar"></i> Reports</button>
+  <button class="tab-btn" onclick="showTab('settings')"><i class="fas fa-cog"></i> Settings</button>
+</nav>
+
+<section id="dashboard" class="tab-content active">
+  <div class="dashboard-cards">
+    <div class="stat-card">
+      <div class="stat-icon">
+        <i class="fas fa-users"></i>
+      </div>
+      <div class="stat-info">
+        <h3>Total Students</h3>
+        <span id="total-students">0</span>
+      </div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon">
+        <i class="fas fa-user-check"></i>
+      </div>
+      <div class="stat-info">
+        <h3>Present Today</h3>
+        <span id="present-today">0</span>
+      </div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon">
+        <i class="fas fa-clock"></i>
+      </div>
+      <div class="stat-info">
+        <h3>On Time</h3>
+        <span id="ontime-today">0</span>
+      </div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon">
+        <i class="fas fa-hourglass-end"></i>
+      </div>
+      <div class="stat-info">
+        <h3>Late Today</h3>
+        <span id="late-today">0</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><i class="fas fa-chart-line"></i> Monthly Attendance Overview</h2>
+    <div class="chart-container">
+      <canvas id="attendance-chart"></canvas>
+    </div>
+  </div>
+</section>
+
+<section id="admin" class="tab-content">
+  <div class="card">
+    <h2><i class="fas fa-user-shield"></i> Admin Panel</h2>
+    
+    <div class="admin-login">
+      <h3>Admin Login</h3>
+      <div class="input-group">
+        <input type="password" id="admin-pass" placeholder="Enter Admin Password">
+        <button onclick="adminLogin()"><i class="fas fa-sign-in-alt"></i> Login</button>
+      </div>
+      <p id="admin-msg" class="msg"></p>
+    </div>
+
+    <div id="admin-panel" style="display:none;">
+      <h3><i class="fas fa-user-plus"></i> Add New Student</h3>
+      <div class="form-grid">
+        <input type="number" id="student-id" placeholder="Student ID">
+        <input type="text" id="student-name" placeholder="Full Name">
+        <input type="text" id="student-class" placeholder="Class & Division">
+        <input type="text" id="student-roll" placeholder="Roll Number">
+        <select id="student-course">
+          <option value="">Select Course</option>
+          <option value="B.Tech">B.Tech</option>
+          <option value="MBA">MBA</option>
+          <option value="BBA">BBA</option>
+          <option value="BCA">BCA</option>
+          <option value="MCA">MCA</option>
+        </select>
+        <input type="email" id="student-email" placeholder="Email Address">
+      </div>
+      
+      <div class="fingerprint-section">
+        <h4>Fingerprint Registration</h4>
+        <div class="fingerprint-register" onclick="registerFingerprint()">
+          <div class="fingerprint-icon">
+            <i class="fas fa-fingerprint"></i>
+          </div>
+          <p>Click to Register Fingerprint</p>
+          <span id="fingerprint-status">Not Registered</span>
+        </div>
+      </div>
+      
+      <button class="btn-primary" onclick="addStudent()"><i class="fas fa-save"></i> Add Student</button>
+      <p id="student-add-msg" class="msg"></p>
+    </div>
+  </div>
+</section>
+
+<section id="student" class="tab-content">
+  <div class="card">
+    <h2><i class="fas fa-users"></i> Student Management</h2>
+    
+    <div class="search-box">
+      <input type="text" id="student-search" placeholder="Search students by name, ID or class..." onkeyup="searchStudents()">
+      <i class="fas fa-search"></i>
+    </div>
+    
+    <div class="table-container">
+      <table id="students-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Class</th>
+            <th>Roll No</th>
+            <th>Course</th>
+            <th>Fingerprint</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Students will be loaded here -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="attendance" class="tab-content">
+  <div class="card">
+    <h2><i class="fas fa-calendar-check"></i> Attendance Management</h2>
+    
+    <div class="attendance-controls">
+      <div class="time-settings">
+        <h3>Attendance Timing</h3>
+        <div class="time-inputs">
+          <div>
+            <label>Start Time:</label>
+            <input type="time" id="start-time" value="09:00">
+          </div>
+          <div>
+            <label>End Time:</label>
+            <input type="time" id="end-time" value="09:30">
+          </div>
+          <button onclick="setAttendanceTiming()"><i class="fas fa-clock"></i> Set Timing</button>
+        </div>
+      </div>
+      
+      <div class="attendance-status">
+        <h3>Current Status: <span id="current-status" class="status-inactive">Inactive</span></h3>
+        <button id="toggle-attendance" onclick="toggleAttendance()" class="btn-secondary">
+          <i class="fas fa-play"></i> Start Attendance
+        </button>
+      </div>
+    </div>
+    
+    <div class="fingerprint-scanner">
+      <h3>Fingerprint Scanner</h3>
+      <div class="scanner-container">
+        <div class="scanner" id="scanner" onclick="startFingerprintScan()">
+          <div class="scanner-animation">
+            <i class="fas fa-fingerprint"></i>
+            <div class="scan-wave"></div>
+          </div>
+          <p>Touch to Scan Fingerprint</p>
+          <span id="scanner-status">Ready</span>
+        </div>
+      </div>
+      <p id="student-msg" class="msg"></p>
+    </div>
+  </div>
+</section>
+
+<section id="reports" class="tab-content">
+  <div class="card">
+    <h2><i class="fas fa-chart-bar"></i> Attendance Reports</h2>
+    
+    <div class="report-filters">
+      <div>
+        <label>Select Month:</label>
+        <select id="report-month">
+          <option value="0">January</option>
+          <option value="1">February</option>
+          <option value="2">March</option>
+          <option value="3">April</option>
+          <option value="4">May</option>
+          <option value="5">June</option>
+          <option value="6">July</option>
+          <option value="7">August</option>
+          <option value="8">September</option>
+          <option value="9">October</option>
+          <option value="10">November</option>
+          <option value="11">December</option>
+        </select>
+      </div>
+      <div>
+        <label>Select Class:</label>
+        <select id="report-class">
+          <option value="">All Classes</option>
+        </select>
+      </div>
+      <button onclick="generateReport()"><i class="fas fa-filter"></i> Generate Report</button>
+      <button onclick="exportReport()" class="btn-secondary"><i class="fas fa-download"></i> Export PDF</button>
+    </div>
+    
+    <div class="report-summary">
+      <h3>Monthly Summary</h3>
+      <div class="summary-cards">
+        <div class="summary-card">
+          <span class="number" id="report-total">0</span>
+          <span class="label">Total Students</span>
+        </div>
+        <div class="summary-card">
+          <span class="number" id="report-present">0</span>
+          <span class="label">Present Days</span>
+        </div>
+        <div class="summary-card">
+          <span class="number" id="report-percentage">0%</span>
+          <span class="label">Attendance %</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="table-container">
+      <table id="report-table">
+        <thead>
+          <tr>
+            <th>Student ID</th>
+            <th>Name</th>
+            <th>Class</th>
+            <th>Present Days</th>
+            <th>Total Days</th>
+            <th>Percentage</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Report data will be loaded here -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="settings" class="tab-content">
+  <div class="card">
+    <h2><i class="fas fa-cog"></i> System Settings</h2>
+    
+    <div class="settings-grid">
+      <div class="setting-group">
+        <h3><i class="fas fa-lock"></i> Security Settings</h3>
+        <div class="setting-item">
+          <label>Change Admin Password:</label>
+          <input type="password" id="new-password" placeholder="New Password">
+          <button onclick="changePassword()">Change Password</button>
+        </div>
+      </div>
+      
+      <div class="setting-group">
+        <h3><i class="fas fa-clock"></i> Attendance Settings</h3>
+        <div class="setting-item">
+          <label>Late Threshold (minutes):</label>
+          <input type="number" id="late-threshold" value="15" min="1">
+          <button onclick="setLateThreshold()">Set Threshold</button>
+        </div>
+      </div>
+      
+      <div class="setting-group">
+        <h3><i class="fas fa-database"></i> Data Management</h3>
+        <div class="setting-item">
+          <button onclick="backupData()" class="btn-secondary"><i class="fas fa-save"></i> Backup Data</button>
+          <button onclick="restoreData()" class="btn-secondary"><i class="fas fa-upload"></i> Restore Data</button>
+        </div>
+        <div class="setting-item">
+          <button onclick="clearAllData()" class="btn-danger"><i class="fas fa-trash"></i> Clear All Data</button>
+        </div>
+      </div>
+      
+      <div class="setting-group">
+        <h3><i class="fas fa-question-circle"></i> Support & Help</h3>
+        <div class="setting-item">
+          <p>Having issues with the system?</p>
+          <button onclick="contactSupport()" class="btn-secondary"><i class="fas fa-envelope"></i> Contact Support</button>
+        </div>
+        <div class="setting-item">
+          <p>Version: 2.1.0 | Last Updated: 15 Dec 2023</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<!-- Student Details Modal -->
+<div id="student-modal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal()">&times;</span>
+    <h2><i class="fas fa-user-graduate"></i> Student Details</h2>
+    
+    <div class="student-profile">
+      <div class="profile-image">
+        <i class="fas fa-user-circle"></i>
+      </div>
+      <div class="profile-info">
+        <h3 id="modal-name"></h3>
+        <p>ID: <span id="modal-id"></span></p>
+        <p>Class: <span id="modal-class"></span></p>
+        <p>Roll No: <span id="modal-roll"></span></p>
+        <p>Course: <span id="modal-course"></span></p>
+      </div>
+    </div>
+    
+    <div class="attendance-stats">
+      <h3>Attendance Statistics</h3>
+      <div class="stats-grid">
+        <div class="stat">
+          <span class="stat-value" id="modal-total"></span>
+          <span class="stat-label">Total Days</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value" id="modal-present"></span>
+          <span class="stat-label">Present</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value" id="modal-percentage"></span>
+          <span class="stat-label">Percentage</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="modal-actions">
+      <button onclick="editStudent()" class="btn-secondary"><i class="fas fa-edit"></i> Edit</button>
+      <button onclick="viewFullReport()" class="btn-primary"><i class="fas fa-chart-bar"></i> Full Report</button>
+    </div>
+  </div>
+</div>
+
+<!-- Support Modal -->
+<div id="support-modal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeSupportModal()">&times;</span>
+    <h2><i class="fas fa-headset"></i> Contact Support</h2>
+    
+    <div class="support-info">
+      <p>Having issues with the system? Contact our support team:</p>
+      <div class="contact-methods">
+        <p><i class="fas fa-envelope"></i> Email: kumarbirju2406@gmail.com</p>
+        <p><i class="fas fa-phone"></i> Phone: +91-7782865085</p>
+        <p><i class="fas fa-clock"></i> Hours: Mon-sat, 9AM-6PM</p>
+      </div>
+    </div>
+    
+    <div class="support-form">
+      <h3>Send us a message</h3>
+      <textarea id="support-message" placeholder="Describe your issue..."></textarea>
+      <button onclick="sendSupportMessage()" class="btn-primary">Send Message</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
